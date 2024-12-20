@@ -1,0 +1,179 @@
+
+Projeto: Modelo de Bitcoin para surfar tendências de alta e sair antes das baixas.
+Passo a passo:
+Passo 1 - Importar bibliotecas
+
+Passo 2 - Pegar dados de cotação do Yahoo Finance
+
+Passo 3 - Calcular indicadores pro modelo
+
+Passo 4 - Gerar sinais de compra
+
+Passo 5 - Visualizar gráfico de máximas históricas
+
+Passo 6 - Gerar sinais de venda
+
+Passo 7 - Criar um ID para todos os trades históricos na tabela
+
+Passo 8 - Calcular retornos de todos os trades
+
+Passo 9 - Gráfico de retornos
+
+Passo 10 - Otimizar o parâmetro
+
+
+
+ ######################################################################################################
+Passo 1 - Importar as bibliotecas
+
+pip install yfinance
+pip install mplcyberpunk
+
+
+import yfinance as yf
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import mplcyberpunk
+plt.style.use("cyberpunk")
+
+
+
+ ######################################################################################################
+Passo 2 - Pegar dados de cotação do Yahoo Finance
+
+ticker = "BTC-USD"
+
+dados = yf.download(ticker, start = "2000-01-01", end = "2024-11-30")
+
+dados
+
+dados = dados.droplevel(1, axis = 1)
+
+dados
+
+
+
+ ######################################################################################################
+Passo 3 - Calcular indicadores pro modelo
+
+dados["retorno"] = dados["Adj Close"].pct_change()
+
+dados
+
+dados_retornos_completos = dados["retorno"]
+
+dados["media_maxima"] = dados["High"].rolling(window = 20).mean()
+dados["media_minima"] = dados["Low"].rolling(window = 20).mean()
+
+dados
+
+
+
+ ######################################################################################################
+Passo 4 - Gerar sinais de compra
+
+dados["sinal_compra"] = 0
+dados["sinal_compra"] = (dados["Close"] > dados["media_maxima"]).astype(int)
+
+dados
+
+
+
+ ######################################################################################################
+Passo 5 - Gerar sinais de venda
+
+dados["sinal_venda"] = 0
+dados["sinal_venda"] = (dados["Close"] < dados["media_minima"]).astype(int)
+
+dados
+
+len(dados)
+
+
+
+
+ ######################################################################################################
+Passo 6 - Gerar operações
+
+dados["posicao"] = 0
+
+for i in range(1, len(dados)):
+
+    if dados["sinal_compra"].iloc[i] == 1:
+
+        dados["posicao"].iloc[i] = 1
+
+    elif dados["sinal_venda"].iloc[i] == 1:
+
+        dados["posicao"].iloc[i] = 0
+
+    else:
+
+        if (dados["posicao"].iloc[i - 1] == 1) and (dados["sinal_venda"].iloc[i] == 0):
+
+            dados["posicao"].iloc[i] = 1
+
+        else:
+
+            dados["posicao"].iloc[i] = 0
+
+        
+dados 
+
+dados["posicao"] = dados["posicao"].shift()
+
+dados
+
+
+
+
+
+ ######################################################################################################
+Passo 7 - Criar um ID para todos os trades históricos na tabela
+
+dados["trades"] = (dados["posicao"] != dados["posicao"].shift()).cumsum()
+
+dados.head(50)
+
+dados["trades"] = dados["trades"].where(dados["posicao"] == 1)
+
+dados
+
+dados = dados.dropna(subset = "trades")
+
+dados
+
+
+
+
+
+
+
+ ######################################################################################################
+Passo 8 - Calcular retornos de todos os trades
+
+df_retorno_acumulado = (1 + dados["retorno"]).cumprod() - 1
+dados_retornos_completos_acum = (1 + dados_retornos_completos).cumprod() - 1
+
+print(df_retorno_acumulado.iloc[-1], dados_retornos_completos_acum.iloc[-1])
+
+
+
+
+
+
+ ######################################################################################################
+Passo 9 - Gráfico de retornos
+
+df_retorno_acumulado.plot(label = "Modelo")
+dados_retornos_completos_acum.plot(label = ticker)
+plt.legend()
+
+plt.show()
+
+
+
+
+ ######################################################################################################
+Passo 10 - Otimizar o parâmetro
