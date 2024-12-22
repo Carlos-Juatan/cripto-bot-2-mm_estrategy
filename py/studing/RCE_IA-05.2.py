@@ -39,8 +39,8 @@ def generate_signals(df, short_window, long_window):
 
 # Exemplo de uso
 symbol = 'SOLBRL'
-interval = Client.KLINE_INTERVAL_15MINUTE
-start_str = '1000 day ago UTC'
+interval = Client.KLINE_INTERVAL_1HOUR
+start_str = '100 day ago UTC'
 
 # Obtém os dados históricos
 data = get_historical_data(symbol, interval, start_str)

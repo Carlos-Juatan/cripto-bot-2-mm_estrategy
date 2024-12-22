@@ -89,4 +89,25 @@ def analyze_parameters(api_key, api_secret, symbol, interval, min_window, max_wi
         current_profit = valor_atual - valor_initial
 
         # Update best parameters if current profit is higher
-        if current
+        if current_profit > best_profit:
+          best_profit = current_profit
+          best_params = {
+            'sma_short': sma_short,
+            'sma_long': sma_long,
+            'bb_window': bb_window,
+            'bb_dev': bb_dev
+          }
+
+        if current_profit == best_profit:
+          # Plot the results for the best combination
+          plt.figure(figsize=(1080, 720))
+          # ... (your plotting code here)
+
+        return {'best_params': best_params, 'max_profit': best_profit}
+
+# Example usage:
+api_key = 'YOUR_API_KEY'
+api_secret = 'YOUR_API_SECRET'
+
+result = analyze_parameters(api_key, api_secret, 'SOLBRL', '15m', 10, 30, 20, 2, plot=True)
+print(result)
