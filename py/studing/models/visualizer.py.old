@@ -1,0 +1,45 @@
+# Nescessário para mostrar os graficos na tela
+import matplotlib.pyplot as plt
+
+# Nescessário para mudar o tema dos gráficos
+import mplcyberpunk 
+plt.style.use("cyberpunk")
+
+class Visualizer:
+    def plot_results(self, data):
+        # Criando uma figura com 4 linhas e 1 coluna e  compartilhando o eixo x
+        fig, axs = plt.subplots(4, 1, figsize=(16, 9), sharex=True, gridspec_kw={'height_ratios': [10, 1, 1, 1]})
+
+        # Plotando o preço de fechamento no primeiro subplot (maior)
+        axs[0].plot(data['close'], label='Preço de Fechamento')
+        axs[0].legend()
+
+        # Plotando RSI no segundo subplot
+        axs[1].plot(data['RSI'], label='RSI', color='gray')
+        axs[1].plot(data['RSI_SMA'], label='RSI_SMA', color='orange')
+        axs[1].legend()
+
+        # Plotando K no terceiro subplot
+        axs[2].plot(data['K'], label='K', color='brown')
+        axs[2].axhline(y=20, color='gray', linestyle='--')
+        axs[2].axhline(y=80, color='gray', linestyle='--')
+        axs[2].legend()
+
+        # Plotando MACD e sinais de compra/venda no quarto subplot
+        axs[3].plot(data['MACD'], label='MACD', color='yellow')
+        axs[3].axhline(y=0, color='gray', linestyle='--')
+        axs[3].legend()
+
+        # Sinais de compra
+        axs[0].scatter(data.index[data['signal'] == 1], data['close'][data['signal'] == 1], marker='^', color='green', label='Sinal de Compra')
+        axs[0].scatter(data.index[data['signal'] == -1], data['close'][data['signal'] == -1], marker='v', color='red', label='Sinal de Venda')
+        axs[0].legend()
+
+        # Ajustando o espaçamento entre os subplots
+        plt.tight_layout()
+
+        # Removendo os eixos x dos subplots intermediários
+        for ax in axs[1:-1]:
+            plt.setp(ax.get_xticklabels(), visible=False)
+
+        plt.show()

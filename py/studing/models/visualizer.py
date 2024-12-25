@@ -6,13 +6,32 @@ import mplcyberpunk
 plt.style.use("cyberpunk")
 
 class Visualizer:
-    def plot_results(self, data):
-        plt.figure(figsize=(1080,720))
-        plt.plot(data['Close'], label='Preço de Fechamento')
-        plt.plot(data['MA_20'])
-        plt.plot(data['MA_200'])
-        # plt.plot(data['mostrar_lucro'], label='lucro')
-        # plt.scatter(data.index[data['signal'] == 1], data['Close'][data['signal'] == 1], marker='^', color='green', label='Sinal de Compra')
-        # plt.scatter(data.index[data['signal'] == 0], data['Close'][data['signal'] == 0], marker='v', color='red', label='Sinal de Venda')
-        plt.legend()
+    def plot_results(self, data, backtester):
+        # Criando uma figura com 4 linhas e 1 coluna e  compartilhando o eixo x
+        fig, axs = plt.subplots(2, 1, figsize=(16, 9), sharex=True, gridspec_kw={'height_ratios': [10, 1]})
+
+        # Plotando o preço de fechamento no primeiro subplot (maior)
+        axs[0].plot(data['close'], label='Preço de Fechamento')
+        axs[0].plot(data['BB_upper'])
+        axs[0].plot(data['BB_lower'])
+        axs[0].legend()
+
+        # Plotando K no terceiro subplot
+        axs[1].plot(data['K'], label='K', color='brown')
+        axs[1].axhline(y=20, color='gray', linestyle='--')
+        axs[1].axhline(y=80, color='gray', linestyle='--')
+        axs[1].legend()
+
+        # Sinais de compra
+        axs[0].scatter(data.index[data['event'] == 1], data['close'][data['event'] == 1], marker='^', color='green', label='Sinal de Compra')
+        axs[0].scatter(data.index[data['event'] == -1], data['close'][data['event'] == -1], marker='v', color='red', label='Sinal de Venda')
+        axs[0].legend()
+
+        # Ajustando o espaçamento entre os subplots
+        plt.tight_layout()
+
+        # Removendo os eixos x dos subplots intermediários
+        for ax in axs[1:-1]:
+            plt.setp(ax.get_xticklabels(), visible=False)
+
         plt.show()

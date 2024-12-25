@@ -1,0 +1,68 @@
+import pandas as pd
+import numpy as np
+
+class Backtester:
+  def __init__(self, data, initial_value, quantity, fee):
+    self.data = data
+    # self.data = data.copy()  # Avoid modifying original data
+    self.initial_value = initial_value
+    self.quantity = quantity
+    self.fee = fee
+    self.cash = initial_value
+    self.holdings = 0
+    self.buy_price = None
+    self.transaction_history = []
+    self.data['profit'] = 0
+    self.last_action = 1
+
+  def run(self):
+    for index, row in self.data.iterrows():
+      # Check for buy signal
+      if row['signal'] == 1 and self.holdings == 0:
+        self.buy(row['close'])
+      # Check for sell signal
+      elif row['signal'] == -1 and self.holdings > 0:
+        self.sell(row['close'])
+        
+      # calculo talvez preciso de ganhos ao investir
+      self.data['profit'][index] = self.cash - self.initial_value + row['close'] + self.holdings * row['close']
+
+
+    # Sell any remaining holdings at the end
+    if self.holdings > 0:
+      self.sell(self.data.iloc[-1]['close'])
+    # Calculate final profit
+    final_profit = self.cash + self.holdings * self.data.iloc[-1]['close'] - self.initial_value
+    return final_profit
+
+  def buy(self, price, stop_loss=None, take_profit=None):
+    # Calculate amount to buy based on available cash and fees
+    amount = (self.cash - self.fee * self.cash) / price
+    self.cash -= amount * price + self.fee * amount * price
+    self.holdings += amount
+    self.buy_price = price
+    self.transaction_history.append({'type': 'buy', 'price': price, 'amount': amount})
+    self.stop_loss = stop_loss
+    self.take_profit = take_profit
+    self.last_action == -1, 0, 1
+    self.data['trade_events'] = np.where(self.last_action == 1, 0, 1)
+
+  def sell(self, price):
+    # Sell all holdings
+    sell_value = self.holdings * price
+    self.cash += sell_value - self.fee * sell_value
+    self.holdings = 0
+    self.transaction_history.append({'type': 'sell', 'price': price, 'amount': self.holdings})
+    self.last_action == 1, 0, -1
+    self.data['trade_events'] = np.where(self.last_action == -1, 0, -1)
+    # Verificar se atingiu stop-loss ou take-profit
+    if self.stop_loss is not None and price <= self.stop_loss:
+      print('bateu o stop-loss')
+        # Executar venda por stop-loss
+    elif self.take_profit is not None and price >= self.take_profit:
+      print('bateu o stop-loss')
+        # Executar venda por take-profit
+
+
+
+      # Calcula o valor do portfólio após cada operação
