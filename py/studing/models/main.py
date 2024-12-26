@@ -1,8 +1,8 @@
 from binanceAPI import BinanceAPI
 #from mm_strategy import MMStrategy
 # from RSIStochasticStrategy import RSIStochasticStrategy
-from backtester import Backtester
 from BollingerStochasticStrategy import BollingerStochasticStrategy
+from backtester import Backtester
 from visualizer import Visualizer
 
 # Informações de autenticação da Binance (substitua pelas suas)
@@ -104,6 +104,7 @@ quantity = 0.15
 fee = 0.001 
 
 backtester = Backtester(data, initial_value, quantity, fee)
+print(backtester.initial_value)
 
 backtester.run()
 

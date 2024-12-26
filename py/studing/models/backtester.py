@@ -1,32 +1,70 @@
-import pandas as pd
-import numpy as np
-
 class Backtester:
-  def __init__(self, data, initial_value, quantity, fee):
-    self.data = data
-    # self.data = data.copy()  # Avoid modifying original data
-    self.initial_value = initial_value
-    self.quantity = quantity
-    self.fee = fee
-    self.cash = initial_value
-    self.hasBuied = False
-    self.data['event'] = 0
+    def __init__(self, data, initial_value, quantity, fee):
+        self.data = data.copy()  # Avoid modifying original data
+        self.initial_value = initial_value
+        self.quantity = quantity
+        self.fee = fee
+        self.transaction_history = []
 
-  def run(self):
-    for row in range(len(self.data) - 1):
-      if self.hasBuied == False and self.data.loc[row, 'signal'] == 1:
-          self.buy(self.data.loc[row+1,'close'])
-      elif self.hasBuied == True and self.data.loc[row, 'signal'] == -1:
-          self.sell(self.data.loc[row+1,'close'])
+    def run(self):
+        cash = self.initial_value
+        position = 0  # 0: no position, 1: long, -1: short
 
+        for index, row in self.data.iterrows():
+            signal = row['signal']
 
-  def buy(self, price, stop_loss=None, take_profit=None):
-    self.hasBuied = True
-    self.data['event'] = 1
-    self.cash -= price * self.quantity
-    
-  def sell(self, price):
-    self.hasBuied = False
-    self.data['event'] = -1
-    self.cash += price * self.quantity - self.fee
-    
+            if signal == 1 and cash > 0 and position != 1:  # Buy signal
+                # Calculate transaction cost
+                transaction_cost = self.quantity * row['close'] * self.fee
+                # Buy quantity
+                quantity_bought = (cash - transaction_cost) / row['close']
+                # Update cash and position
+                cash -= quantity_bought * row['close'] + transaction_cost
+                position = 1
+                # Record transaction
+                self.transaction_history.append({
+                    "type": "buy",
+                    "price": row['close'],
+                    "quantity": quantity_bought,
+                    "cash": cash,
+                    "position": position
+                })
+
+            elif signal == -1 and position == 1:  # Sell signal
+                # Calculate transaction cost
+                transaction_cost = self.quantity * row['close'] * self.fee
+                # Sell quantity
+                quantity_sold = self.quantity
+                # Update cash and position
+                cash += quantity_sold * row['close'] - transaction_cost
+                position = 0
+                # Record transaction
+                self.transaction_history.append({
+                    "type": "sell",
+                    "price": row['close'],
+                    "quantity": quantity_sold,
+                    "cash": cash,
+                    "position": position
+                })
+
+        # Handle remaining position at the end
+        if position == 1:
+            cash += self.quantity * self.data['close'].iloc[-1]  # Sell at last close price
+            self.transaction_history.append({
+                "type": "sell",
+                "price": self.data['close'].iloc[-1],
+                "quantity": self.quantity,
+                "cash": cash,
+                "position": position
+            })
+
+        self.data['cash'] = cash
+
+    def get_performance(self):
+        # Calculate final portfolio value
+        final_value = self.data['cash'].iloc[-1]
+
+        # Calculate return
+        return_pct = (final_value - self.initial_value) / self.initial_value * 100
+
+        return final_value, return_pct

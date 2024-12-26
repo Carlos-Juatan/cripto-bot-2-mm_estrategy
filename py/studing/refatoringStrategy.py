@@ -46,7 +46,7 @@ def generate_position(data):
             data["posicao"].iloc[i] = 0
 
         else:
-            if (data["posicao"].iloc[i - 1] == 1) and (data["sinal_venda"].iloc[i] == 0):
+            if (data["posicao"].iloc[i - 1] == 1) and (data["signal"].iloc[i] == 0):
                 data["posicao"].iloc[i] = 1
 
             else:
@@ -83,6 +83,7 @@ def show_graphics(cumulative_return, equity_curve):
 # Passo 2 - Pegar dados de cotação do Yahoo Finance
 tickerSymbo = "BTC-USD"
 dados = fetch_yahoo_data(tickerSymbo, "2000-01-01", "2024-11-30")
+print(dados)
 
 # Passo 3 - Calcular indicadores pro modelo
 dados_retornos_completos = get_returned_metrics(dados)

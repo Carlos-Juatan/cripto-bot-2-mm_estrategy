@@ -6,7 +6,7 @@ import mplcyberpunk
 plt.style.use("cyberpunk")
 
 class Visualizer:
-    def plot_results(self, data, backtester):
+    def plot_results(self, data):
         # Criando uma figura com 4 linhas e 1 coluna e  compartilhando o eixo x
         fig, axs = plt.subplots(2, 1, figsize=(16, 9), sharex=True, gridspec_kw={'height_ratios': [10, 1]})
 
@@ -34,4 +34,13 @@ class Visualizer:
         for ax in axs[1:-1]:
             plt.setp(ax.get_xticklabels(), visible=False)
 
+        plt.show()
+
+
+    
+    # Passo 9 - Gráfico de retornos
+    def show_graphics(self, cumulative_return, equity_curve, tickerSymbo):
+        cumulative_return.plot(label = "Modelo")
+        equity_curve.plot(label = tickerSymbo)
+        plt.legend()
         plt.show()
